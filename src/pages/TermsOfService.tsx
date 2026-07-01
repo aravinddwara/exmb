@@ -26,14 +26,14 @@ export const TermsOfService: React.FC = () => {
           <section>
             <h2 className="text-xl font-medium text-geist-text-primary-light dark:text-geist-text-primary-dark mb-3">1. Acceptance of Terms</h2>
             <p>
-              By accessing and using exmb, you accept and agree to be bound by the terms and provision of this agreement. If you do not agree to abide by these terms, please do not use this service.
+              By accessing and using exmb by abmio, you accept and agree to be bound by the terms and provision of this agreement. If you do not agree to abide by these terms, please do not use this service.
             </p>
           </section>
 
           <section>
             <h2 className="text-xl font-medium text-geist-text-primary-light dark:text-geist-text-primary-dark mb-3">2. Description of Service</h2>
             <p>
-              exmb provides an online mock testing and question bank platform designed specifically for exam preparation. We reserve the right to modify or discontinue, temporarily or permanently, the service with or without notice.
+              exmb by abmio provides an online mock testing and question bank platform designed specifically for exam preparation. We reserve the right to modify or discontinue, temporarily or permanently, the service with or without notice.
             </p>
           </section>
 
@@ -47,7 +47,7 @@ export const TermsOfService: React.FC = () => {
           <section>
             <h2 className="text-xl font-medium text-geist-text-primary-light dark:text-geist-text-primary-dark mb-3">4. Intellectual Property</h2>
             <p>
-              All content on this platform, including text, graphics, logos, and software, is the property of exmb or its content suppliers and is protected by copyright laws.
+              All content on this platform, including text, graphics, logos, and software, is the property of exmb by abmio or its content suppliers and is protected by copyright laws.
             </p>
           </section>
 
