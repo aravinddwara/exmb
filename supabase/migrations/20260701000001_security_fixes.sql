@@ -16,6 +16,12 @@ DECLARE
     v_session_id uuid;
     v_paper_question_ids text[];
 BEGIN
+    -- Rate-limit session creation per user
+    IF (SELECT COUNT(*) FROM public.test_sessions 
+        WHERE user_id = auth.uid() AND started_at > now() - interval '1 hour') > 10 THEN
+        RAISE EXCEPTION 'Too many sessions started recently';
+    END IF;
+
     -- Limit the number of questions to prevent abuse
     IF p_question_ids IS NOT NULL AND array_length(p_question_ids, 1) > 200 THEN
         RAISE EXCEPTION 'Too many questions in a single session';
@@ -68,7 +74,7 @@ BEGIN
                 RAISE EXCEPTION 'Question not part of this session';
             END IF;
         ELSE
-            IF NOT EXISTS (SELECT 1 FROM public.paper_questions WHERE paper_id = v_session_record.paper_id AND question_id = p_question_id) THEN
+            IF NOT EXISTS (SELECT 1 FROM public.questions WHERE id = p_question_id AND paper_id = v_session_record.paper_id) THEN
                 RAISE EXCEPTION 'Question not part of this exam paper';
             END IF;
         END IF;
@@ -153,11 +159,11 @@ BEGIN
         
         -- Check if question is in session's question_ids (for practice) or in the paper (for mock)
         IF v_session_record.paper_id IS NULL THEN
-            IF p_question_id != ALL(v_session_record.question_ids) THEN
+            IF v_question_id != ALL(v_session_record.question_ids) THEN
                 CONTINUE; -- skip invalid questions instead of failing the whole batch
             END IF;
         ELSE
-            IF NOT EXISTS (SELECT 1 FROM public.paper_questions WHERE paper_id = v_session_record.paper_id AND question_id = p_question_id) THEN
+            IF NOT EXISTS (SELECT 1 FROM public.questions WHERE id = v_question_id AND paper_id = v_session_record.paper_id) THEN
                 CONTINUE;
             END IF;
         END IF;
@@ -219,4 +225,3 @@ END;
 $$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public;
 
 ALTER FUNCTION public.handle_new_user() SET search_path = public;
-
