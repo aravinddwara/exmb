@@ -41,6 +41,7 @@ export const PracticeSession: React.FC = () => {
     {},
   );
   const [sessionName, setSessionName] = useState("Practice Session");
+  const [sessionId, setSessionId] = useState<string | null>(null);
 
   // Stats
   const [correctCount, setCorrectCount] = useState(0);
@@ -198,6 +199,18 @@ export const PracticeSession: React.FC = () => {
               setBookmarked(bms);
             }
           });
+
+        const poolIds = pool.map(q => q.id);
+        supabase.rpc("start_test_session", {
+          p_paper_id: null,
+          p_exam_type: "Practice",
+          p_duration_minutes: config.timeLimit || 0,
+          p_question_ids: poolIds
+        }).then(({ data, error }) => {
+          if (!error && data) {
+            setSessionId(data);
+          }
+        });
       }
 
       if (config.timeLimit > 0) {
@@ -261,6 +274,7 @@ export const PracticeSession: React.FC = () => {
       p_exam_type: "Practice",
       p_time_taken_seconds: questionTimes[currentQ.id] || 0,
       p_attempt_id: questionResults[currentQ.id]?.attempt_id ?? null,
+      p_session_id: sessionId,
     });
     if (!error && data) {
       setQuestionResults((prev) => ({ ...prev, [currentQ.id]: data }));
@@ -325,7 +339,8 @@ export const PracticeSession: React.FC = () => {
         if (attemptsToLog.length > 0) {
           const { data, error } = await supabase.rpc("submit_mock_test_attempts", {
             p_attempts: attemptsToLog,
-            p_exam_type: "Practice"
+            p_exam_type: "Practice",
+            p_session_id: sessionId,
           });
 
           if (error) {

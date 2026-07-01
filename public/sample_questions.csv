@@ -1,0 +1,5 @@
+text,option_1,option_1_image,option_2,option_2_image,option_3,option_3_image,option_4,option_4_image,correct_option,question_images,type,difficulty,positive_marks,negative_marks,chapter_id,paper_id
+"What is the capital of France?","London","","Paris","","Berlin","","Madrid","",1,"[]","SINGLE_CHOICE","Easy",4,-1,"",""
+"Solve for x: $2x + 3 = 7$","1","","2","","3","","4","",1,"[]","SINGLE_CHOICE","Medium",4,-1,"",""
+"Identify the organism shown in the figure:","Amoeba","","Paramecium","","Euglena","","Hydra","",0,"[""https://upload.wikimedia.org/wikipedia/commons/4/44/Amoeba_proteus.jpg""]","SINGLE_CHOICE","Medium",4,-1,"",""
+"Which of the following molecules has a dipole moment?","$\text{CO}_2$","","$\text{CH}_4$","","$\text{H}_2\text{O}$","","$\text{BF}_3$","",2,"[]","SINGLE_CHOICE","Medium",4,-1,"",""
