@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useAdminStore } from '../../store/useAdminStore';
 import { Plus, Edit2, Trash2, Folder, Check, ChevronDown, ChevronRight, GripVertical } from 'lucide-react';
 import { v4 as uuidv4 } from 'uuid';
+import { ValidatedInput } from '../../components/ValidatedInput';
 
 export const AcademicManager: React.FC = () => {
   const { classes, subjects, chapters, topics, addClass, updateClass, deleteClass, addSubject, updateSubject, deleteSubject, addChapter, updateChapter, deleteChapter, addTopic, updateTopic, deleteTopic, reorderClasses, reorderSubjects, reorderChapters, reorderTopics } = useAdminStore();
@@ -299,18 +300,17 @@ export const AcademicManager: React.FC = () => {
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
           <div className="bg-geist-bg-light dark:bg-geist-bg-dark rounded-xl p-6 max-w-sm w-full border border-geist-border-light dark:border-geist-border-dark shadow-xl">
             <h3 className="text-lg font-semibold text-geist-text-primary-light dark:text-geist-text-primary-dark mb-4">{promptModal.title}</h3>
-            <input 
+            <ValidatedInput 
               autoFocus 
               type="text" 
               value={promptModal.value}
-              onChange={(e) => setPromptModal(prev => ({...prev, value: e.target.value}))}
+              onChange={(val) => setPromptModal(prev => ({...prev, value: val}))}
               onKeyDown={(e) => {
                 if (e.key === 'Enter') {
                   promptModal.onSave(promptModal.value);
                   setPromptModal({ isOpen: false, title: '', value: '', onSave: () => {} });
                 }
               }}
-              className="w-full bg-geist-surface-light dark:bg-geist-surface-dark border border-geist-border-light dark:border-geist-border-dark text-geist-text-primary-light dark:text-geist-text-primary-dark p-2 rounded-lg mb-6 focus:outline-none focus:border-geist-text-secondary-light"
             />
             <div className="flex justify-end gap-3">
               <button 

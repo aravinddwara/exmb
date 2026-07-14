@@ -3,6 +3,7 @@ import { Layers, Plus, Filter, Calendar, Folder, Edit2, Trash2, Check, GripVerti
 import { useAdminStore, PaperData } from '../../store/useAdminStore';
 import { v4 as uuidv4 } from 'uuid';
 import { Dropdown } from '../../components/Dropdown';
+import { ValidatedInput } from '../../components/ValidatedInput';
 import { Toast } from '../../components/Toast';
 
 export const PaperManager: React.FC = () => {
@@ -58,14 +59,14 @@ export const PaperManager: React.FC = () => {
         <div className="mb-6 p-4 bg-geist-surface-light dark:bg-geist-surface-dark border border-geist-border-light dark:border-geist-border-dark rounded-xl space-y-3">
           <h3 className="text-sm font-medium text-geist-text-primary-light dark:text-geist-text-primary-dark">Create New Paper</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-            <input type="text" placeholder="Paper Name (e.g. JEE Main 2024 Shift 1)" value={newPaper.name} onChange={e => setNewPaper({...newPaper, name: e.target.value})} className="bg-geist-bg-light dark:bg-geist-bg-dark border border-geist-border-light dark:border-geist-border-dark rounded-md px-3 py-1.5 text-xs outline-none w-full text-geist-text-primary-light dark:text-geist-text-primary-dark focus:border-geist-text-secondary-light" />
+            <ValidatedInput type="text" placeholder="Paper Name (e.g. JEE Main 2024 Shift 1)" value={newPaper.name} onChange={val => setNewPaper({...newPaper, name: val})} className="bg-geist-bg-light dark:bg-geist-bg-dark border border-geist-border-light dark:border-geist-border-dark rounded-md px-3 py-1.5 text-xs outline-none w-full text-geist-text-primary-light dark:text-geist-text-primary-dark focus:border-geist-text-secondary-light" />
             <Dropdown
               value={newPaper.exam_id || ''}
               onChange={val => setNewPaper({...newPaper, exam_id: val})}
               options={exams.map(e => ({value: e.id, label: e.name}))}
               placeholder="Select Target Exam"
             />
-            <input type="number" placeholder="Year" value={newPaper.year || ''} onChange={e => setNewPaper({...newPaper, year: parseInt(e.target.value)})} className="bg-geist-bg-light dark:bg-geist-bg-dark border border-geist-border-light dark:border-geist-border-dark rounded-md px-3 py-1.5 text-xs outline-none w-full text-geist-text-primary-light dark:text-geist-text-primary-dark focus:border-geist-text-secondary-light" />
+            <ValidatedInput type="number" placeholder="Year" value={newPaper.year?.toString() || ''} onChange={val => setNewPaper({...newPaper, year: parseInt(val)})} className="bg-geist-bg-light dark:bg-geist-bg-dark border border-geist-border-light dark:border-geist-border-dark rounded-md px-3 py-1.5 text-xs outline-none w-full text-geist-text-primary-light dark:text-geist-text-primary-dark focus:border-geist-text-secondary-light" />
           </div>
           <div className="flex gap-2 justify-end">
             <button onClick={() => setShowAddPaper(false)} className="px-3 py-1.5 rounded-md text-xs font-medium text-geist-text-secondary-light dark:text-geist-text-secondary-dark hover:bg-geist-surface-light dark:hover:bg-geist-surface-dark transition-colors">Cancel</button>
