@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useUserStore } from '../../store/useUserStore';
-import { ChevronRight, Award, Play } from 'lucide-react';
+import { Award, Play } from 'lucide-react';
 import { motion } from 'motion/react';
 
 export const MockTestSetup: React.FC = () => {

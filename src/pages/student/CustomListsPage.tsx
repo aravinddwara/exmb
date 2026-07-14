@@ -3,7 +3,7 @@ import { supabase } from '../../lib/supabase';
 import { useAuthStore } from '../../store/useAuthStore';
 import { useUserStore } from '../../store/useUserStore';
 import { MarkdownRenderer } from '../../components/MarkdownRenderer';
-import { List, Plus, Search, Trash2, Folder } from 'lucide-react';
+import { List, Plus, Trash2 } from 'lucide-react';
 import { QuestionReviewModal } from '../../components/QuestionReviewModal';
 
 export const CustomListsPage: React.FC = () => {

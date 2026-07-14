@@ -31,7 +31,7 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = memo(({ content
       const isTableRow = trimmed.includes('|') && !trimmed.startsWith('$') && !trimmed.startsWith('\\') && trimmed.length > 0 && !trimmed.startsWith('#') && !trimmed.startsWith('>');
       
       if (isTableRow) {
-        let tableLines = [];
+        const tableLines = [];
         let maxPipes = 0;
         let j = i;
         while (j < lines.length) {

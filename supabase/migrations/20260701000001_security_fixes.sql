@@ -6,6 +6,9 @@ CREATE UNIQUE INDEX IF NOT EXISTS one_active_session_per_paper
 ON public.test_sessions (user_id, paper_id)
 WHERE submitted_at IS NULL AND paper_id IS NOT NULL;
 
+DROP FUNCTION IF EXISTS public.start_test_session(uuid, text, integer);
+DROP FUNCTION IF EXISTS public.start_test_session(uuid, text, integer, text[]);
+
 CREATE OR REPLACE FUNCTION public.start_test_session(
     p_paper_id uuid,
     p_exam_type text,
@@ -113,6 +116,9 @@ BEGIN
     );
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public;
+
+DROP FUNCTION IF EXISTS public.submit_mock_test_attempts(jsonb, text, uuid);
+DROP FUNCTION IF EXISTS public.submit_mock_test_attempts(jsonb, text);
 
 CREATE OR REPLACE FUNCTION public.submit_mock_test_attempts(
     p_attempts jsonb,
@@ -224,4 +230,9 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public;
 
-ALTER FUNCTION public.handle_new_user() SET search_path = public;
+DO $$
+BEGIN
+    IF EXISTS (SELECT 1 FROM pg_proc WHERE proname = 'handle_new_user') THEN
+        ALTER FUNCTION public.handle_new_user() SET search_path = public;
+    END IF;
+END $$;

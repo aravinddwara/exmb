@@ -3,7 +3,6 @@ import { useAdminStore, ExamType } from '../../store/useAdminStore';
 import { Plus, Edit2, Trash2, Check, Clock, BookOpen, GraduationCap, GripVertical } from 'lucide-react';
 import { ValidatedInput } from '../../components/ValidatedInput';
 import { v4 as uuidv4 } from 'uuid';
-import { Dropdown } from '../../components/Dropdown';
 
 export const ExamManager: React.FC = () => {
   const { exams, classes, subjects, addExam, updateExam, deleteExam, reorderExams } = useAdminStore();
@@ -102,15 +101,15 @@ export const ExamManager: React.FC = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-1">
               <label className="text-[11px] font-medium text-geist-text-secondary-light dark:text-geist-text-secondary-dark uppercase tracking-wider">Exam Name</label>
-              <ValidatedInput type="text" placeholder="e.g. JEE Main 2024" value={newExam.name} onChange={val => setNewExam({...newExam, name: val})} className="bg-geist-bg-light dark:bg-geist-bg-dark border border-geist-border-light dark:border-geist-border-dark rounded-md px-3 py-1.5 text-xs outline-none w-full text-geist-text-primary-light dark:text-geist-text-primary-dark focus:border-geist-text-secondary-light" />
+              <ValidatedInput type="text" maxLength={100} placeholder="e.g. JEE Main 2024" value={newExam.name} onChange={val => setNewExam({...newExam, name: val})} className="bg-geist-bg-light dark:bg-geist-bg-dark border border-geist-border-light dark:border-geist-border-dark rounded-md px-3 py-1.5 text-xs outline-none w-full text-geist-text-primary-light dark:text-geist-text-primary-dark focus:border-geist-text-secondary-light" />
             </div>
             <div className="space-y-1">
               <label className="text-[11px] font-medium text-geist-text-secondary-light dark:text-geist-text-secondary-dark uppercase tracking-wider">Exam Code</label>
-              <ValidatedInput type="text" placeholder="e.g. JEE_MAIN" value={newExam.type} onChange={val => setNewExam({...newExam, type: val})} className="bg-geist-bg-light dark:bg-geist-bg-dark border border-geist-border-light dark:border-geist-border-dark rounded-md px-3 py-1.5 text-xs outline-none w-full text-geist-text-primary-light dark:text-geist-text-primary-dark focus:border-geist-text-secondary-light" />
+              <ValidatedInput type="text" maxLength={20} pattern="^[A-Za-z0-9_]+$" placeholder="e.g. JEE_MAIN" value={newExam.type} onChange={val => setNewExam({...newExam, type: val})} className="bg-geist-bg-light dark:bg-geist-bg-dark border border-geist-border-light dark:border-geist-border-dark rounded-md px-3 py-1.5 text-xs outline-none w-full text-geist-text-primary-light dark:text-geist-text-primary-dark focus:border-geist-text-secondary-light" />
             </div>
             <div className="space-y-1">
               <label className="text-[11px] font-medium text-geist-text-secondary-light dark:text-geist-text-secondary-dark uppercase tracking-wider">Duration (Minutes)</label>
-              <ValidatedInput type="number" placeholder="180" value={newExam.duration_minutes.toString()} onChange={val => setNewExam({...newExam, duration_minutes: parseInt(val) || 0})} className="bg-geist-bg-light dark:bg-geist-bg-dark border border-geist-border-light dark:border-geist-border-dark rounded-md px-3 py-1.5 text-xs outline-none w-full text-geist-text-primary-light dark:text-geist-text-primary-dark focus:border-geist-text-secondary-light" />
+              <ValidatedInput type="number" maxLength={4} placeholder="180" value={newExam.duration_minutes.toString()} onChange={val => setNewExam({...newExam, duration_minutes: parseInt(val) || 0})} className="bg-geist-bg-light dark:bg-geist-bg-dark border border-geist-border-light dark:border-geist-border-dark rounded-md px-3 py-1.5 text-xs outline-none w-full text-geist-text-primary-light dark:text-geist-text-primary-dark focus:border-geist-text-secondary-light" />
             </div>
             <div className="space-y-2 col-span-1 md:col-span-2">
                <label className="text-[11px] font-medium text-geist-text-secondary-light dark:text-geist-text-secondary-dark uppercase tracking-wider">Target Grades (Optional)</label>

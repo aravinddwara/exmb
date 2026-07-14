@@ -52,6 +52,12 @@ export const PracticeSession: React.FC = () => {
   const { attempts } = useUserStore();
   
   const isInitialized = useRef(false);
+  const examEndTimeRef = useRef<number | null>(null);
+  const currentIdxRef = useRef(0);
+
+  useEffect(() => {
+    currentIdxRef.current = currentIdx;
+  }, [currentIdx]);
 
   useEffect(() => {
     if (isInitialized.current) return;
@@ -96,145 +102,74 @@ export const PracticeSession: React.FC = () => {
       }
       setSessionName(name);
 
-      // Filter questions locally based on topic_id, chapter_id, etc.
-      let pool = questions;
+      // Generate practice session via RPC
+      const loadSession = async () => {
+        try {
+          const { data, error } = await supabase.rpc('generate_practice_session', { p_config: config });
+          
+          if (error) {
+             alert(error.message || "Failed to generate practice session.");
+             navigate("/practice/setup");
+             return;
+          }
+          
+          if (!data || !data.session_id || !data.questions || data.questions.length === 0) {
+             alert("No questions found for the selected criteria.");
+             navigate("/practice/setup");
+             return;
+          }
+          
+          const pool = data.questions;
+          
+          setFilteredQuestions(pool);
+          setSessionId(data.session_id);
 
-      if (config.topicIds?.length > 0) {
-        pool = pool.filter((q) => config.topicIds.includes(q.topic_id));
-      } else if (config.chapterIds?.length > 0) {
-        pool = pool.filter((q) => config.chapterIds.includes(q.chapter_id));
-      } else if (config.subjectIds?.length > 0) {
-        const targetChapterIds: string[] = [];
-        academicTree.forEach((cls) => {
-          cls.children?.forEach((sub) => {
-            if (config.subjectIds.includes(sub.id)) {
-              sub.children?.forEach((chap) => {
-                targetChapterIds.push(chap.id);
-              });
-            }
+          // Calculate question stats based on global attempts
+          const qStats: Record<string, { total: number; mistakes: number }> = {};
+          attempts.forEach((a) => {
+            if (!qStats[a.question_id])
+              qStats[a.question_id] = { total: 0, mistakes: 0 };
+            qStats[a.question_id].total++;
+            if (!a.is_correct) qStats[a.question_id].mistakes++;
           });
-        });
-        pool = pool.filter((q) => targetChapterIds.includes(q.chapter_id));
-      } else if (config.classIds?.length > 0) {
-        const targetChapterIds: string[] = [];
-        academicTree.forEach((cls) => {
-          if (config.classIds.includes(cls.id)) {
-            cls.children?.forEach((sub) => {
-              sub.children?.forEach((chap) => {
-                targetChapterIds.push(chap.id);
+          setQuestionStats(qStats);
+
+          // Initialize question times
+          const initialTimes: Record<string, number> = {};
+          pool.forEach((q: any) => (initialTimes[q.id] = 0));
+          setQuestionTimes(initialTimes);
+
+          if (user) {
+            supabase
+              .from("bookmarks")
+              .select("question_id")
+              .eq("user_id", user.id)
+              .then(({ data: bmData }) => {
+                if (bmData) {
+                  const bms: Record<string, boolean> = {};
+                  bmData.forEach((b) => (bms[b.question_id] = true));
+                  setBookmarked(bms);
+                }
               });
-            });
           }
-        });
-        pool = pool.filter((q) => targetChapterIds.includes(q.chapter_id));
-      }
 
-      if (config.sourceType === "PYQ") {
-        if (config.sourceId) {
-          pool = pool.filter((q) => q.paper_id === config.sourceId);
-        } else {
-          pool = pool.filter((q) => q.paper_id && !q.book_set_id);
+          if (config.timeLimit > 0) {
+            setTimeRemaining(config.timeLimit);
+          }
+          isInitialized.current = true;
+        } catch (e) {
+          console.error(e);
+          navigate("/dashboard");
         }
-      } else if (config.sourceType === "BookSet") {
-        if (config.sourceId) {
-          pool = pool.filter((q) => q.book_set_id === config.sourceId);
-        } else {
-          pool = pool.filter((q) => q.book_set_id);
-        }
-      }
+      };
 
-      if (config.questionOrder === "random") {
-        // Randomize array
-        pool = pool.sort(() => 0.5 - Math.random());
-      } else if (config.questionOrder === "sequential") {
-        // Sort stably by created_at, fallback to ID
-        pool = pool.sort(
-          (a, b) => {
-            const diff = new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
-            if (diff !== 0) return diff;
-            return a.id.localeCompare(b.id);
-          }
-        );
-      } else {
-        pool = pool.sort(() => 0.5 - Math.random());
-      }
+      loadSession();
 
-      // Calculate question stats based on global attempts BEFORE slicing
-      const qStats: Record<string, { total: number; mistakes: number }> = {};
-      attempts.forEach((a) => {
-        if (!qStats[a.question_id])
-          qStats[a.question_id] = { total: 0, mistakes: 0 };
-        qStats[a.question_id].total++;
-        if (!a.is_correct) qStats[a.question_id].mistakes++;
-      });
-      setQuestionStats(qStats);
-
-      if (config.questionOrder === "sequential" || !config.questionOrder) {
-         let firstUnansweredIdx = pool.findIndex((q) => !qStats[q.id]);
-         if (firstUnansweredIdx === -1) {
-            firstUnansweredIdx = pool.findIndex((q) => qStats[q.id]?.mistakes > 0);
-            if (firstUnansweredIdx === -1) firstUnansweredIdx = 0;
-         }
-         
-         if (config.questionCount && config.questionCount > 0) {
-            pool = pool.slice(firstUnansweredIdx, firstUnansweredIdx + config.questionCount);
-         }
-         setCurrentIdx(0);
-      } else {
-         if (config.questionCount && config.questionCount > 0) {
-            pool = pool.slice(0, config.questionCount);
-         }
-         setCurrentIdx(0);
-      }
-
-      if (pool.length === 0) {
-        alert("No questions found for the selected criteria.");
-        navigate("/practice/setup");
-        return;
-      }
-
-      setFilteredQuestions(pool);
-
-      // Initialize question times
-      const initialTimes: Record<string, number> = {};
-      pool.forEach((q) => (initialTimes[q.id] = 0));
-      setQuestionTimes(initialTimes);
-
-      if (user) {
-        supabase
-          .from("bookmarks")
-          .select("question_id")
-          .eq("user_id", user.id)
-          .then(({ data }) => {
-            if (data) {
-              const bms: Record<string, boolean> = {};
-              data.forEach((b) => (bms[b.question_id] = true));
-              setBookmarked(bms);
-            }
-          });
-
-        const poolIds = pool.map(q => q.id);
-        supabase.rpc("start_test_session", {
-          p_paper_id: null,
-          p_exam_type: "Practice",
-          p_duration_minutes: config.timeLimit || 0,
-          p_question_ids: poolIds
-        }).then(({ data, error }) => {
-          if (!error && data) {
-            setSessionId(data);
-          }
-        });
-      }
-
-      if (config.timeLimit > 0) {
-        setTimeRemaining(config.timeLimit);
-      }
-      isInitialized.current = true;
     } catch (e) {
       console.error(e);
       navigate("/dashboard");
     }
-  }, [questions, academicTree, navigate, user]);
+  }, [academicTree, navigate, user, attempts]);
 
   const selectedAnswersRef = useRef(selectedAnswers);
   useEffect(() => {
@@ -245,33 +180,47 @@ export const PracticeSession: React.FC = () => {
   useEffect(() => {
     if (showResults || filteredQuestions.length === 0) return;
 
+    let lastTick = Date.now();
+
     const timer = setInterval(() => {
-      const currentQId = filteredQuestions[currentIdx]?.id;
-      if (currentQId && selectedAnswersRef.current[currentQId] === undefined) {
-        setQuestionTimes((prev) => ({
-          ...prev,
-          [currentQId]: (prev[currentQId] || 0) + 1,
-        }));
+      const now = Date.now();
+      const deltaSeconds = Math.floor((now - lastTick) / 1000);
+      
+      if (deltaSeconds >= 1) {
+        lastTick += deltaSeconds * 1000;
+        
+        const currentQId = filteredQuestions[currentIdxRef.current]?.id;
+        if (currentQId && selectedAnswersRef.current[currentQId] === undefined) {
+          setQuestionTimes((prev) => ({
+            ...prev,
+            [currentQId]: (prev[currentQId] || 0) + deltaSeconds,
+          }));
+        }
       }
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [currentIdx, showResults, filteredQuestions]);
+  }, [showResults, filteredQuestions.length === 0]);
 
   useEffect(() => {
     if (timeRemaining === null || showResults) return;
 
-    if (timeRemaining <= 0) {
-      finishPractice();
-      return;
+    if (!examEndTimeRef.current) {
+      examEndTimeRef.current = Date.now() + timeRemaining * 1000;
     }
 
     const timer = setInterval(() => {
-      setTimeRemaining((prev) => (prev !== null ? prev - 1 : null));
+      const remaining = Math.max(0, Math.floor((examEndTimeRef.current! - Date.now()) / 1000));
+      setTimeRemaining(remaining);
+      
+      if (remaining <= 0) {
+        clearInterval(timer);
+        finishPractice();
+      }
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [timeRemaining, showResults]);
+  }, [timeRemaining === null, showResults]);
 
   const handleSelectOption = async (idx: number) => {
     if (showResults) return;
@@ -344,7 +293,7 @@ export const PracticeSession: React.FC = () => {
 
     if (user) {
       try {
-        let finalResultsMap = { ...questionResults };
+        const finalResultsMap = { ...questionResults };
         let correct = 0;
         let incorrect = 0;
         const mistakesToLog: string[] = [];

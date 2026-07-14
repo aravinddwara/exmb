@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useAdminStore } from '../../store/useAdminStore';
-import { Plus, Edit2, Trash2, Folder, Check, ChevronDown, ChevronRight, GripVertical } from 'lucide-react';
+import { Plus, Edit2, Trash2, Folder, ChevronDown, ChevronRight, GripVertical } from 'lucide-react';
 import { v4 as uuidv4 } from 'uuid';
 import { ValidatedInput } from '../../components/ValidatedInput';
 
@@ -303,6 +303,7 @@ export const AcademicManager: React.FC = () => {
             <ValidatedInput 
               autoFocus 
               type="text" 
+              maxLength={100}
               value={promptModal.value}
               onChange={(val) => setPromptModal(prev => ({...prev, value: val}))}
               onKeyDown={(e) => {

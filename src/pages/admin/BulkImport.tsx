@@ -3,7 +3,6 @@ import { UploadCloud, FileText, AlertTriangle, CheckCircle, ArrowRight, Settings
 import { useAdminStore, QuestionData } from '../../store/useAdminStore';
 import { v4 as uuidv4 } from 'uuid';
 import Papa from 'papaparse';
-import { Dropdown } from '../../components/Dropdown';
 
 const EditableCell = React.memo(({ value, onChange }: { value: string, onChange: (val: string) => void }) => {
   const [localVal, setLocalVal] = useState(value);
@@ -206,17 +205,17 @@ export const BulkImport: React.FC = () => {
         const row = rowsToProcess[i];
         
         // Text validation
-        let textVal = mappings['text'] ? row[mappings['text']]?.trim() : '';
+        const textVal = mappings['text'] ? row[mappings['text']]?.trim() : '';
         if (!textVal) continue; // Skip empty rows
 
-        let explanationVal = mappings['explanation'] ? row[mappings['explanation']]?.trim() : '';
+        const explanationVal = mappings['explanation'] ? row[mappings['explanation']]?.trim() : '';
 
         // Options parsing
-        let optionsStr = mappings['options'] ? row[mappings['options']] : '';
-        let opt1 = mappings['option_1'] ? row[mappings['option_1']] : '';
-        let opt2 = mappings['option_2'] ? row[mappings['option_2']] : '';
-        let opt3 = mappings['option_3'] ? row[mappings['option_3']] : '';
-        let opt4 = mappings['option_4'] ? row[mappings['option_4']] : '';
+        const optionsStr = mappings['options'] ? row[mappings['options']] : '';
+        const opt1 = mappings['option_1'] ? row[mappings['option_1']] : '';
+        const opt2 = mappings['option_2'] ? row[mappings['option_2']] : '';
+        const opt3 = mappings['option_3'] ? row[mappings['option_3']] : '';
+        const opt4 = mappings['option_4'] ? row[mappings['option_4']] : '';
 
         let optionsArray = ["Option A", "Option B", "Option C", "Option D"]; // fallback
         if (optionsStr) {
@@ -230,7 +229,7 @@ export const BulkImport: React.FC = () => {
         }
         
         // Correct Option
-        let correctOptRaw = mappings['correct_option'] ? row[mappings['correct_option']]?.toString().trim() : '0';
+        const correctOptRaw = mappings['correct_option'] ? row[mappings['correct_option']]?.toString().trim() : '0';
         let correctOpt = parseInt(correctOptRaw, 10);
         if (isNaN(correctOpt)) {
             const firstChar = correctOptRaw.toUpperCase().charAt(0);
@@ -242,7 +241,7 @@ export const BulkImport: React.FC = () => {
         }
         
         // Chapter ID validation
-        let cIdRaw = mappings['chapter_id'] ? row[mappings['chapter_id']] : '';
+        const cIdRaw = mappings['chapter_id'] ? row[mappings['chapter_id']] : '';
         let cId = validUuidRegex.test(cIdRaw) ? cIdRaw : '';
         
         if (!cId) {
@@ -264,11 +263,11 @@ export const BulkImport: React.FC = () => {
         }
 
         // Paper ID validation
-        let pIdRaw = mappings['paper_id'] ? row[mappings['paper_id']] : '';
+        const pIdRaw = mappings['paper_id'] ? row[mappings['paper_id']] : '';
         let pId = validUuidRegex.test(pIdRaw) ? pIdRaw : defaultPaper;
         if (!pId || !validUuidRegex.test(pId)) pId = null;
 
-        let qImagesStr = mappings['question_images'] ? row[mappings['question_images']] : '';
+        const qImagesStr = mappings['question_images'] ? row[mappings['question_images']] : '';
         let qImagesArray = [];
         if (qImagesStr) {
            try { qImagesArray = JSON.parse(qImagesStr); }
@@ -277,10 +276,10 @@ export const BulkImport: React.FC = () => {
            }
         }
 
-        let qIdRaw = mappings['id'] ? row[mappings['id']] : '';
-        let finalId = qIdRaw ? qIdRaw.toString().trim() : uuidv4();
+        const qIdRaw = mappings['id'] ? row[mappings['id']] : '';
+        const finalId = qIdRaw ? qIdRaw.toString().trim() : uuidv4();
 
-        let expImagesStr = mappings['explanation_images'] ? row[mappings['explanation_images']] : '';
+        const expImagesStr = mappings['explanation_images'] ? row[mappings['explanation_images']] : '';
         let expImagesArray = [];
         if (expImagesStr) {
            try { expImagesArray = JSON.parse(expImagesStr); }
@@ -289,7 +288,7 @@ export const BulkImport: React.FC = () => {
            }
         }
 
-        let parsedType = mappings['type'] ? row[mappings['type']]?.toString().toUpperCase().trim() : '';
+        const parsedType = mappings['type'] ? row[mappings['type']]?.toString().toUpperCase().trim() : '';
         let dbType = 'SINGLE_CHOICE';
         if (parsedType) {
            if (parsedType.includes('MULTI') || parsedType.includes('MAQ')) dbType = 'MULTIPLE_CHOICE';

@@ -14,11 +14,23 @@
 DROP POLICY IF EXISTS "Allow public read access on questions" ON public.questions;
 
 -- Create a restrictive read policy: only admins can SELECT the raw table
+DROP POLICY IF EXISTS "Allow admin read access on questions" ON public.questions;
 CREATE POLICY "Allow admin read access on questions"
   ON public.questions FOR SELECT
   USING (public.is_admin());
 
 -- Recreate the safe view (idempotent) — excludes correct_option, explanation, explanation_images
+-- Ensure topics and topic_id exist first to avoid column does not exist errors on older databases
+CREATE TABLE IF NOT EXISTS public.topics (
+  id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
+  name text NOT NULL,
+  chapter_id uuid NOT NULL REFERENCES public.chapters(id) ON DELETE CASCADE,
+  order_index integer DEFAULT 0,
+  created_at timestamptz DEFAULT now()
+);
+ALTER TABLE public.questions ADD COLUMN IF NOT EXISTS topic_id uuid REFERENCES public.topics(id);
+
+DROP VIEW IF EXISTS public.questions_for_students CASCADE;
 CREATE OR REPLACE VIEW public.questions_for_students
 WITH (security_invoker = true) AS
 SELECT
@@ -125,6 +137,9 @@ BEGIN
     );
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public;
+
+DROP FUNCTION IF EXISTS public.submit_mock_test_attempts(jsonb, text, uuid);
+DROP FUNCTION IF EXISTS public.submit_mock_test_attempts(jsonb, text);
 
 -- Mock-test batch RPC: sum validation + per-question clamping
 CREATE OR REPLACE FUNCTION public.submit_mock_test_attempts(
@@ -259,41 +274,65 @@ $$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public;
 -- ─────────────────────────────────────────────────────────────────────────────
 
 -- Classes
-CREATE POLICY IF NOT EXISTS "admin_insert_classes" ON public.classes FOR INSERT WITH CHECK (public.is_admin());
-CREATE POLICY IF NOT EXISTS "admin_update_classes" ON public.classes FOR UPDATE USING (public.is_admin()) WITH CHECK (public.is_admin());
-CREATE POLICY IF NOT EXISTS "admin_delete_classes" ON public.classes FOR DELETE USING (public.is_admin());
+DROP POLICY IF EXISTS "admin_insert_classes" ON public.classes;
+CREATE POLICY "admin_insert_classes" ON public.classes FOR INSERT WITH CHECK (public.is_admin());
+DROP POLICY IF EXISTS "admin_update_classes" ON public.classes;
+CREATE POLICY "admin_update_classes" ON public.classes FOR UPDATE USING (public.is_admin()) WITH CHECK (public.is_admin());
+DROP POLICY IF EXISTS "admin_delete_classes" ON public.classes;
+CREATE POLICY "admin_delete_classes" ON public.classes FOR DELETE USING (public.is_admin());
 
 -- Subjects
-CREATE POLICY IF NOT EXISTS "admin_insert_subjects" ON public.subjects FOR INSERT WITH CHECK (public.is_admin());
-CREATE POLICY IF NOT EXISTS "admin_update_subjects" ON public.subjects FOR UPDATE USING (public.is_admin()) WITH CHECK (public.is_admin());
-CREATE POLICY IF NOT EXISTS "admin_delete_subjects" ON public.subjects FOR DELETE USING (public.is_admin());
+DROP POLICY IF EXISTS "admin_insert_subjects" ON public.subjects;
+CREATE POLICY "admin_insert_subjects" ON public.subjects FOR INSERT WITH CHECK (public.is_admin());
+DROP POLICY IF EXISTS "admin_update_subjects" ON public.subjects;
+CREATE POLICY "admin_update_subjects" ON public.subjects FOR UPDATE USING (public.is_admin()) WITH CHECK (public.is_admin());
+DROP POLICY IF EXISTS "admin_delete_subjects" ON public.subjects;
+CREATE POLICY "admin_delete_subjects" ON public.subjects FOR DELETE USING (public.is_admin());
 
 -- Chapters
-CREATE POLICY IF NOT EXISTS "admin_insert_chapters" ON public.chapters FOR INSERT WITH CHECK (public.is_admin());
-CREATE POLICY IF NOT EXISTS "admin_update_chapters" ON public.chapters FOR UPDATE USING (public.is_admin()) WITH CHECK (public.is_admin());
-CREATE POLICY IF NOT EXISTS "admin_delete_chapters" ON public.chapters FOR DELETE USING (public.is_admin());
+DROP POLICY IF EXISTS "admin_insert_chapters" ON public.chapters;
+CREATE POLICY "admin_insert_chapters" ON public.chapters FOR INSERT WITH CHECK (public.is_admin());
+DROP POLICY IF EXISTS "admin_update_chapters" ON public.chapters;
+CREATE POLICY "admin_update_chapters" ON public.chapters FOR UPDATE USING (public.is_admin()) WITH CHECK (public.is_admin());
+DROP POLICY IF EXISTS "admin_delete_chapters" ON public.chapters;
+CREATE POLICY "admin_delete_chapters" ON public.chapters FOR DELETE USING (public.is_admin());
 
 -- Exams
-CREATE POLICY IF NOT EXISTS "admin_insert_exams" ON public.exams FOR INSERT WITH CHECK (public.is_admin());
-CREATE POLICY IF NOT EXISTS "admin_update_exams" ON public.exams FOR UPDATE USING (public.is_admin()) WITH CHECK (public.is_admin());
-CREATE POLICY IF NOT EXISTS "admin_delete_exams" ON public.exams FOR DELETE USING (public.is_admin());
+DROP POLICY IF EXISTS "admin_insert_exams" ON public.exams;
+CREATE POLICY "admin_insert_exams" ON public.exams FOR INSERT WITH CHECK (public.is_admin());
+DROP POLICY IF EXISTS "admin_update_exams" ON public.exams;
+CREATE POLICY "admin_update_exams" ON public.exams FOR UPDATE USING (public.is_admin()) WITH CHECK (public.is_admin());
+DROP POLICY IF EXISTS "admin_delete_exams" ON public.exams;
+CREATE POLICY "admin_delete_exams" ON public.exams FOR DELETE USING (public.is_admin());
 
 -- Papers
-CREATE POLICY IF NOT EXISTS "admin_insert_papers" ON public.papers FOR INSERT WITH CHECK (public.is_admin());
-CREATE POLICY IF NOT EXISTS "admin_update_papers" ON public.papers FOR UPDATE USING (public.is_admin()) WITH CHECK (public.is_admin());
-CREATE POLICY IF NOT EXISTS "admin_delete_papers" ON public.papers FOR DELETE USING (public.is_admin());
+DROP POLICY IF EXISTS "admin_insert_papers" ON public.papers;
+CREATE POLICY "admin_insert_papers" ON public.papers FOR INSERT WITH CHECK (public.is_admin());
+DROP POLICY IF EXISTS "admin_update_papers" ON public.papers;
+CREATE POLICY "admin_update_papers" ON public.papers FOR UPDATE USING (public.is_admin()) WITH CHECK (public.is_admin());
+DROP POLICY IF EXISTS "admin_delete_papers" ON public.papers;
+CREATE POLICY "admin_delete_papers" ON public.papers FOR DELETE USING (public.is_admin());
 
 -- Questions (mutations)
-CREATE POLICY IF NOT EXISTS "admin_insert_questions" ON public.questions FOR INSERT WITH CHECK (public.is_admin());
-CREATE POLICY IF NOT EXISTS "admin_update_questions" ON public.questions FOR UPDATE USING (public.is_admin()) WITH CHECK (public.is_admin());
-CREATE POLICY IF NOT EXISTS "admin_delete_questions" ON public.questions FOR DELETE USING (public.is_admin());
+DROP POLICY IF EXISTS "admin_insert_questions" ON public.questions;
+CREATE POLICY "admin_insert_questions" ON public.questions FOR INSERT WITH CHECK (public.is_admin());
+DROP POLICY IF EXISTS "admin_update_questions" ON public.questions;
+CREATE POLICY "admin_update_questions" ON public.questions FOR UPDATE USING (public.is_admin()) WITH CHECK (public.is_admin());
+DROP POLICY IF EXISTS "admin_delete_questions" ON public.questions;
+CREATE POLICY "admin_delete_questions" ON public.questions FOR DELETE USING (public.is_admin());
 
 -- Question Types
-CREATE POLICY IF NOT EXISTS "admin_insert_question_types" ON public.question_types FOR INSERT WITH CHECK (public.is_admin());
-CREATE POLICY IF NOT EXISTS "admin_update_question_types" ON public.question_types FOR UPDATE USING (public.is_admin()) WITH CHECK (public.is_admin());
-CREATE POLICY IF NOT EXISTS "admin_delete_question_types" ON public.question_types FOR DELETE USING (public.is_admin());
+DROP POLICY IF EXISTS "admin_insert_question_types" ON public.question_types;
+CREATE POLICY "admin_insert_question_types" ON public.question_types FOR INSERT WITH CHECK (public.is_admin());
+DROP POLICY IF EXISTS "admin_update_question_types" ON public.question_types;
+CREATE POLICY "admin_update_question_types" ON public.question_types FOR UPDATE USING (public.is_admin()) WITH CHECK (public.is_admin());
+DROP POLICY IF EXISTS "admin_delete_question_types" ON public.question_types;
+CREATE POLICY "admin_delete_question_types" ON public.question_types FOR DELETE USING (public.is_admin());
 
 -- Books Sets
-CREATE POLICY IF NOT EXISTS "admin_insert_books_sets" ON public.books_sets FOR INSERT WITH CHECK (public.is_admin());
-CREATE POLICY IF NOT EXISTS "admin_update_books_sets" ON public.books_sets FOR UPDATE USING (public.is_admin()) WITH CHECK (public.is_admin());
-CREATE POLICY IF NOT EXISTS "admin_delete_books_sets" ON public.books_sets FOR DELETE USING (public.is_admin());
+DROP POLICY IF EXISTS "admin_insert_books_sets" ON public.books_sets;
+CREATE POLICY "admin_insert_books_sets" ON public.books_sets FOR INSERT WITH CHECK (public.is_admin());
+DROP POLICY IF EXISTS "admin_update_books_sets" ON public.books_sets;
+CREATE POLICY "admin_update_books_sets" ON public.books_sets FOR UPDATE USING (public.is_admin()) WITH CHECK (public.is_admin());
+DROP POLICY IF EXISTS "admin_delete_books_sets" ON public.books_sets;
+CREATE POLICY "admin_delete_books_sets" ON public.books_sets FOR DELETE USING (public.is_admin());

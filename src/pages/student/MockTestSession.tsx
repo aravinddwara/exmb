@@ -57,7 +57,12 @@ export const MockTestSession: React.FC = () => {
   const { attempts } = useUserStore();
   
   const isInitialized = useRef(false);
+  const examEndTimeRef = useRef<number | null>(null);
+  const currentIdxRef = useRef(0);
 
+  useEffect(() => {
+    currentIdxRef.current = currentIdx;
+  }, [currentIdx]);
   useEffect(() => {
     if (isInitialized.current) return;
     try {
@@ -84,16 +89,26 @@ export const MockTestSession: React.FC = () => {
 
       const targetExam = exams.find((e) => e.id === targetPaper.exam_id);
 
-      // Filter questions by paper_id
-      let pool = questions.filter((q) => q.paper_id === targetPaper.id);
+      const loadQuestions = async () => {
+        let pool = questions.filter((q) => q.paper_id === targetPaper.id);
 
-      if (pool.length === 0) {
-        alert("No questions found for this mock test.");
-        navigate("/mock-test/setup");
-        return;
-      }
+        if (pool.length === 0) {
+          const { data } = await supabase.from('questions_for_students')
+            .select('*')
+            .eq('paper_id', targetPaper.id);
+            
+          if (data && data.length > 0) {
+             pool = data;
+          }
+        }
 
-      if (targetExam?.subject_ids && targetExam.subject_ids.length > 0) {
+        if (pool.length === 0) {
+          alert("No questions found for this mock test.");
+          navigate("/mock-test/setup");
+          return;
+        }
+
+        if (targetExam?.subject_ids && targetExam.subject_ids.length > 0) {
         // Build a chapter -> subject mapping for fast lookup
         const chapterToSubject: Record<string, string> = {};
         for (const cls of academicTree) {
@@ -158,11 +173,15 @@ export const MockTestSession: React.FC = () => {
         supabase.rpc('start_test_session', {
           p_paper_id: targetPaper.id,
           p_exam_type: 'MockTest',
-          p_duration_minutes: durationMins
+          p_duration_minutes: durationMins,
+          p_question_ids: pool.map(q => q.id)
         }).then(({ data, error }) => {
           if (!error && data) setSessionId(data);
         });
       }
+      };
+      
+      loadQuestions();
     } catch (e) {
       console.error(e);
       navigate("/dashboard");
@@ -173,33 +192,47 @@ export const MockTestSession: React.FC = () => {
   useEffect(() => {
     if (showResults || filteredQuestions.length === 0) return;
 
+    let lastTick = Date.now();
+
     const timer = setInterval(() => {
-      const currentQId = filteredQuestions[currentIdx]?.id;
-      if (currentQId) {
-        setQuestionTimes((prev) => ({
-          ...prev,
-          [currentQId]: (prev[currentQId] || 0) + 1,
-        }));
+      const now = Date.now();
+      const deltaSeconds = Math.floor((now - lastTick) / 1000);
+      
+      if (deltaSeconds >= 1) {
+        lastTick += deltaSeconds * 1000;
+        
+        const currentQId = filteredQuestions[currentIdxRef.current]?.id;
+        if (currentQId) {
+          setQuestionTimes((prev) => ({
+            ...prev,
+            [currentQId]: (prev[currentQId] || 0) + deltaSeconds,
+          }));
+        }
       }
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [currentIdx, showResults, filteredQuestions]);
+  }, [showResults, filteredQuestions.length === 0]);
 
   useEffect(() => {
     if (timeRemaining === null || showResults) return;
 
-    if (timeRemaining <= 0) {
-      finishTest();
-      return;
+    if (!examEndTimeRef.current) {
+      examEndTimeRef.current = Date.now() + timeRemaining * 1000;
     }
 
     const timer = setInterval(() => {
-      setTimeRemaining((prev) => (prev !== null ? prev - 1 : null));
+      const remaining = Math.max(0, Math.floor((examEndTimeRef.current! - Date.now()) / 1000));
+      setTimeRemaining(remaining);
+      
+      if (remaining <= 0) {
+        clearInterval(timer);
+        finishTest();
+      }
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [timeRemaining, showResults]);
+  }, [timeRemaining === null, showResults]);
 
   const handleSelectOption = (idx: number) => {
     if (showResults) return;
@@ -1087,7 +1120,7 @@ export const MockTestSession: React.FC = () => {
 
                         let styles =
                           "bg-geist-bg-light dark:bg-geist-bg-dark text-geist-text-primary-light dark:text-geist-text-primary-dark border-geist-border-light dark:border-geist-border-dark hover:bg-geist-surface-light dark:hover:bg-geist-surface-dark focus:border-geist-text-primary-light";
-                        let Icon = null;
+                        const Icon = null;
 
                         if (isSelected) {
                           styles =

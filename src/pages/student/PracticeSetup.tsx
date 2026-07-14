@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useUserStore } from "../../store/useUserStore";
-import { ChevronRight, Play } from "lucide-react";
+import { Play } from "lucide-react";
 import { CustomDropdown } from "../../components/CustomDropdown";
 
 export const PracticeSetup: React.FC = () => {

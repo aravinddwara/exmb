@@ -1,6 +1,5 @@
 import { create } from 'zustand';
 import { supabase } from '../lib/supabase';
-import { v4 as uuidv4 } from 'uuid';
 
 export type ExamType = string;
 export type QuestionType = 'SINGLE_CHOICE' | 'MULTIPLE_CHOICE' | 'NUMERICAL' | 'INTEGER' | 'MATRIX_MATCH';

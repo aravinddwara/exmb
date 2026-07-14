@@ -2,6 +2,7 @@
 DROP POLICY IF EXISTS "Allow public read access on questions" ON public.questions;
 
 -- Give students/anon a column-safe view instead of the raw table
+DROP VIEW IF EXISTS public.questions_for_students CASCADE;
 CREATE OR REPLACE VIEW public.questions_for_students
 WITH (security_invoker = true) AS
 SELECT
@@ -169,5 +170,12 @@ END;
 $$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public;
 
 -- Finding 7: SECURITY DEFINER functions missing search_path
-ALTER FUNCTION public.handle_new_user() SET search_path = public;
-ALTER FUNCTION public.get_admin_dashboard_stats() SET search_path = public;
+DO $$
+BEGIN
+    IF EXISTS (SELECT 1 FROM pg_proc WHERE proname = 'handle_new_user') THEN
+        ALTER FUNCTION public.handle_new_user() SET search_path = public;
+    END IF;
+    IF EXISTS (SELECT 1 FROM pg_proc WHERE proname = 'get_admin_dashboard_stats') THEN
+        ALTER FUNCTION public.get_admin_dashboard_stats() SET search_path = public;
+    END IF;
+END $$;

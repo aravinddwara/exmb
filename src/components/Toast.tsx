@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { CheckCircle } from 'lucide-react';
 
 export const Toast = ({ message, onClose }: { message: string, onClose: () => void }) => {

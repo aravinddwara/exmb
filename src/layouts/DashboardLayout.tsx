@@ -1,10 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
-import { Home, Settings, LogOut, Menu, X, ShieldAlert, UploadCloud, Network, Layers, Database, FolderTree, User, Bookmark, AlertCircle, History, List, MoreHorizontal, BookOpen, Timer, Calendar } from 'lucide-react';
+import { Home, LogOut, Menu, X, ShieldAlert, UploadCloud, Network, Layers, Database, FolderTree, User, Bookmark, AlertCircle, History, List, BookOpen, Timer, Calendar } from 'lucide-react';
 import { ThemeToggle } from '../components/ThemeToggle';
 import { supabase } from '../lib/supabase';
 import { useAuthStore } from '../store/useAuthStore';
-import { useUserStore } from '../store/useUserStore';
 import { motion, AnimatePresence } from 'motion/react';
 
 export const DashboardLayout: React.FC = () => {

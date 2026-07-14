@@ -1,7 +1,7 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useUserStore } from '../../store/useUserStore';
-import { ChevronRight, Award, Play, Network, Search, ArrowLeft } from 'lucide-react';
+import { ChevronRight, Play, Network, Search, ArrowLeft } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
 export const ExamsPage: React.FC = () => {
@@ -183,9 +183,6 @@ export const ExamsPage: React.FC = () => {
                         
                         <div className="flex items-center justify-between sm:justify-end gap-3 shrink-0">
                           <div className="flex items-center gap-2">
-                            <span className="text-xs font-medium px-2 py-0.5 rounded-md bg-geist-surface-light dark:bg-geist-surface-dark text-geist-text-secondary-light dark:text-geist-text-secondary-dark border border-geist-border-light dark:border-geist-border-dark">
-                              {paper.questionCount || 0} Qs
-                            </span>
                             {activeExam?.duration_minutes && (
                               <span className="text-xs font-medium px-2 py-0.5 rounded-md bg-geist-surface-light dark:bg-geist-surface-dark text-geist-text-secondary-light dark:text-geist-text-secondary-dark border border-geist-border-light dark:border-geist-border-dark">
                                 {activeExam.duration_minutes}m

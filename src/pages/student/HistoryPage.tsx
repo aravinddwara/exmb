@@ -1,17 +1,14 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect } from "react";
 import { supabase } from "../../lib/supabase";
 import { useAuthStore } from "../../store/useAuthStore";
 import { useUserStore } from "../../store/useUserStore";
 import {
-  History,
   Clock,
   Target,
-  Award,
   CalendarDays,
   Activity,
   ChevronLeft,
   CheckCircle,
-  XCircle,
   Bookmark,
   Circle,
 } from "lucide-react";

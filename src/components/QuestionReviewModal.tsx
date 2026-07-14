@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { X, ChevronLeft, ChevronRight, CheckCircle, XCircle, Circle } from 'lucide-react';
+import { X, ChevronLeft, ChevronRight, CheckCircle, Circle } from 'lucide-react';
 import { MarkdownRenderer } from './MarkdownRenderer';
 import { supabase } from '../lib/supabase';
 

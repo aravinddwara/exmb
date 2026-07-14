@@ -1,7 +1,6 @@
 import React, { useState, useMemo, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useUserStore } from "../../store/useUserStore";
-import { CustomDropdown } from "../../components/CustomDropdown";
 import {
   ChevronRight,
   Play,
@@ -90,17 +89,17 @@ export const SubjectsPage: React.FC = () => {
   };
 
   const getChapterStats = (chapterId: string) => {
-    const chapQs = questions.filter((q) => q.chapter_id === chapterId);
-    const total = chapQs.length;
+    let total = 0;
+    academicTree.forEach((cls) =>
+      cls.children?.forEach((sub) =>
+        sub.children?.forEach((chap) => {
+          if (chap.id === chapterId) total = chap.questionCount || 0;
+        })
+      )
+    );
     if (total === 0) return { progress: 0, total: 0 };
-    const chapQIds = new Set(chapQs.map((q) => q.id));
-    const attempted = new Set(
-      attempts
-        .filter((a) => chapQIds.has(a.question_id))
-        .map((a) => a.question_id),
-    ).size;
     return {
-      progress: Math.round((attempted / total) * 100),
+      progress: 0,
       total
     };
   };

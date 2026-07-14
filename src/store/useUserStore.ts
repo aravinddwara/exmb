@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { supabase } from '../lib/supabase';
-import { ExamData, PaperData, ClassData, SubjectData, ChapterData, QuestionData } from './useAdminStore';
+import { ExamData, PaperData, QuestionData } from './useAdminStore';
 
 export interface AcademicNode {
   id: string;
@@ -92,30 +92,9 @@ export const useUserStore = create<UserState>((set, get) => ({
       supabase.from('books_sets').select('*').order('order_index')
     ]);
 
-    // Fetch from the safe view — excludes correct_option, explanation, explanation_images
-    let allQuestions: any[] = [];
-    let from = 0;
-    let to = 999;
-    let hasMore = true;
-    const MAX_PAGES = 20; // Safety guard against infinite loops
-    let page = 0;
-    while (hasMore && page < MAX_PAGES) {
-      page++;
-      const { data, error } = await supabase.from('questions_for_students')
-        .select('*')
-        .range(from, to);
-      if (error) {
-         console.error(error);
-         break;
-      }
-      if (data && data.length > 0) {
-        allQuestions = [...allQuestions, ...data];
-        if (data.length < 1000) hasMore = false;
-        else { from += 1000; to += 1000; }
-      } else {
-        hasMore = false;
-      }
-    }
+    // Fetch aggregated question counts from the new safe view
+    const countsRes = await supabase.from('academic_question_counts').select('*');
+    const countsData = countsRes.data || [];
 
     const classes = clsRes.data || [];
     const subjects = subRes.data || [];
@@ -133,19 +112,24 @@ export const useUserStore = create<UserState>((set, get) => ({
         name: sub.name,
         type: 'Subject',
         children: chapters.filter(chap => chap.subject_id === sub.id).map(chap => {
-          const chapQuestionsCount = allQuestions.filter(q => q.chapter_id === chap.id).length;
+          // Chapter count is the sum of all its topic counts (and questions without a topic)
+          const chapQuestionsCount = countsData
+            .filter(c => c.chapter_id === chap.id)
+            .reduce((sum, c) => sum + Number(c.question_count), 0);
+            
           return {
             id: chap.id,
             name: chap.name,
             type: 'Chapter',
             questionCount: chapQuestionsCount,
             children: topics.filter(t => t.chapter_id === chap.id).map(topic => {
-              const topicQuestionsCount = allQuestions.filter(q => q.topic_id === topic.id).length;
+              const topicQuestionsCount = countsData
+                .find(c => c.topic_id === topic.id)?.question_count || 0;
               return {
                 id: topic.id,
                 name: topic.name,
                 type: 'Topic',
-                questionCount: topicQuestionsCount
+                questionCount: Number(topicQuestionsCount)
               };
             })
           };
@@ -165,7 +149,7 @@ export const useUserStore = create<UserState>((set, get) => ({
       const yesterday = new Date(Date.now() - 86400000).toDateString();
       
       let streakCount = 0;
-      let checkDate = new Date();
+      const checkDate = new Date();
       
       if (dates[0] === today || dates[0] === yesterday) {
          let currentIdx = dates[0] === today ? 0 : 0;
@@ -191,19 +175,33 @@ export const useUserStore = create<UserState>((set, get) => ({
       userStats = statsData || [];
     }
 
+
+
+    // Let's just fetch the chapter_ids for the attempted questions
+    const attemptedQuestionIds = [...new Set(attempts.map((a: any) => a.question_id))];
+    let attemptedQuestionsMeta: any[] = [];
+    if (attemptedQuestionIds.length > 0) {
+      const { data: qMeta } = await supabase.from('questions_for_students')
+        .select('id, chapter_id')
+        .in('id', attemptedQuestionIds);
+      attemptedQuestionsMeta = qMeta || [];
+    }
+
     const classProgress = classes.map(cls => {
       const classSubjects = subjects.filter(s => s.class_id === cls.id).map(s => s.id);
       const classChapters = chapters.filter(c => classSubjects.includes(c.subject_id)).map(c => c.id);
       
-      const classTotalQuestions = allQuestions.filter(q => classChapters.includes(q.chapter_id || '')).length;
+      const classTotalQuestions = countsData
+        .filter(c => classChapters.includes(c.chapter_id))
+        .reduce((sum, c) => sum + Number(c.question_count), 0);
       
       const classAttemptedQuestions = new Set(
         attempts
-          .filter(a => {
-            const q = allQuestions.find(qi => qi.id === a.question_id);
+          .filter((a: any) => {
+            const q = attemptedQuestionsMeta.find(qi => qi.id === a.question_id);
             return q && classChapters.includes(q.chapter_id || '');
           })
-          .map(a => a.question_id)
+          .map((a: any) => a.question_id)
       ).size;
 
       return {
@@ -218,9 +216,9 @@ export const useUserStore = create<UserState>((set, get) => ({
     set({
       academicTree,
       exams: examsRes.data || [],
-      papers: (papersRes.data || []).map(p => ({ ...p, questionCount: allQuestions.filter(q => q.paper_id === p.id).length })),
+      papers: (papersRes.data || []).map(p => ({ ...p, questionCount: 0 })), // We will load paper counts dynamically if needed
       booksSets,
-      questions: allQuestions,
+      questions: [], // No longer storing all questions globally
       totalSolved,
       streak: currentStreak,
       userExamStats: userStats,

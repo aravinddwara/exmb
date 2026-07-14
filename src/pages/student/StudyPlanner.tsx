@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
-import { ChevronLeft, ChevronRight, Plus, Trash2, Calendar as CalendarIcon, BookOpen, Clock, CheckCircle2, CircleDashed, ArrowRightCircle, RefreshCcw, Book, GripVertical } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Plus, Trash2, Calendar as CalendarIcon, Clock, CheckCircle2, CircleDashed, ArrowRightCircle, RefreshCcw, Book, GripVertical } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import {
   DndContext,
@@ -188,14 +188,15 @@ export const StudyPlanner: React.FC = () => {
 
   const selectedDateStr = formatDateString(selectedDate);
   
-  const statusOrder: Record<TaskStatus, number> = {
-    'not-started': 1,
-    'in-progress': 2,
-    'revision': 3,
-    'completed': 4,
-  };
+  // Moved statusOrder to be defined outside component or use it directly
 
   const tasksForSelectedDate = useMemo(() => {
+    const statusOrder: Record<TaskStatus, number> = {
+      'not-started': 1,
+      'in-progress': 2,
+      'revision': 3,
+      'completed': 4,
+    };
     return tasks
       .filter(t => t.date === selectedDateStr && (filterStatus === 'all' || t.status === filterStatus))
       .sort((a, b) => {
@@ -225,8 +226,6 @@ export const StudyPlanner: React.FC = () => {
     const newIndex = tasksForSelectedDate.findIndex((t) => t.id === over.id);
 
     if (oldIndex !== -1 && newIndex !== -1) {
-      const activeTask = tasksForSelectedDate[oldIndex];
-
       const newTasks = arrayMove(tasksForSelectedDate, oldIndex, newIndex);
       
       const updatedTasks = newTasks.map((t, index) => ({

@@ -156,7 +156,7 @@ export const useTestStore = create<TestState>()(
       endTest: () => {
         set({ isActive: false, sessionId: null, questions: [], responses: {}, timeLeft: 0 });
         // Clear persisted state on test end
-        try { sessionStorage.removeItem('test-session-storage'); } catch {}
+        try { sessionStorage.removeItem('test-session-storage'); } catch (e) { console.error(e); }
       }
     }),
     {
@@ -165,9 +165,22 @@ export const useTestStore = create<TestState>()(
       storage: {
         getItem: (name) => {
           const str = sessionStorage.getItem(name);
-          return str ? JSON.parse(str) : null;
+          if (!str) return null;
+          try {
+            // Simple Base64 obfuscation to deter casual DevTools tampering
+            return JSON.parse(atob(str));
+          } catch (e) {
+            // Fallback if data was already there in plaintext
+            try { return JSON.parse(str); } catch (e2) { return null; }
+          }
         },
-        setItem: (name, value) => sessionStorage.setItem(name, JSON.stringify(value)),
+        setItem: (name, value) => {
+          try {
+             sessionStorage.setItem(name, btoa(JSON.stringify(value)));
+          } catch (e) {
+             console.error('Failed to save test session', e);
+          }
+        },
         removeItem: (name) => sessionStorage.removeItem(name),
       },
       // Don't persist timeLeft — it must come from the live timer, not storage

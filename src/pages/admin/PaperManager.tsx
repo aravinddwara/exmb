@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Layers, Plus, Filter, Calendar, Folder, Edit2, Trash2, Check, GripVertical } from 'lucide-react';
+import { Layers, Plus, Filter, Folder, Trash2, GripVertical } from 'lucide-react';
 import { useAdminStore, PaperData } from '../../store/useAdminStore';
 import { v4 as uuidv4 } from 'uuid';
 import { Dropdown } from '../../components/Dropdown';
@@ -59,14 +59,14 @@ export const PaperManager: React.FC = () => {
         <div className="mb-6 p-4 bg-geist-surface-light dark:bg-geist-surface-dark border border-geist-border-light dark:border-geist-border-dark rounded-xl space-y-3">
           <h3 className="text-sm font-medium text-geist-text-primary-light dark:text-geist-text-primary-dark">Create New Paper</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-            <ValidatedInput type="text" placeholder="Paper Name (e.g. JEE Main 2024 Shift 1)" value={newPaper.name} onChange={val => setNewPaper({...newPaper, name: val})} className="bg-geist-bg-light dark:bg-geist-bg-dark border border-geist-border-light dark:border-geist-border-dark rounded-md px-3 py-1.5 text-xs outline-none w-full text-geist-text-primary-light dark:text-geist-text-primary-dark focus:border-geist-text-secondary-light" />
+            <ValidatedInput type="text" maxLength={100} placeholder="Paper Name (e.g. JEE Main 2024 Shift 1)" value={newPaper.name} onChange={val => setNewPaper({...newPaper, name: val})} className="bg-geist-bg-light dark:bg-geist-bg-dark border border-geist-border-light dark:border-geist-border-dark rounded-md px-3 py-1.5 text-xs outline-none w-full text-geist-text-primary-light dark:text-geist-text-primary-dark focus:border-geist-text-secondary-light" />
             <Dropdown
               value={newPaper.exam_id || ''}
               onChange={val => setNewPaper({...newPaper, exam_id: val})}
               options={exams.map(e => ({value: e.id, label: e.name}))}
               placeholder="Select Target Exam"
             />
-            <ValidatedInput type="number" placeholder="Year" value={newPaper.year?.toString() || ''} onChange={val => setNewPaper({...newPaper, year: parseInt(val)})} className="bg-geist-bg-light dark:bg-geist-bg-dark border border-geist-border-light dark:border-geist-border-dark rounded-md px-3 py-1.5 text-xs outline-none w-full text-geist-text-primary-light dark:text-geist-text-primary-dark focus:border-geist-text-secondary-light" />
+            <ValidatedInput type="number" maxLength={4} placeholder="Year" value={newPaper.year?.toString() || ''} onChange={val => setNewPaper({...newPaper, year: parseInt(val)})} className="bg-geist-bg-light dark:bg-geist-bg-dark border border-geist-border-light dark:border-geist-border-dark rounded-md px-3 py-1.5 text-xs outline-none w-full text-geist-text-primary-light dark:text-geist-text-primary-dark focus:border-geist-text-secondary-light" />
           </div>
           <div className="flex gap-2 justify-end">
             <button onClick={() => setShowAddPaper(false)} className="px-3 py-1.5 rounded-md text-xs font-medium text-geist-text-secondary-light dark:text-geist-text-secondary-dark hover:bg-geist-surface-light dark:hover:bg-geist-surface-dark transition-colors">Cancel</button>
@@ -129,7 +129,7 @@ export const PaperManager: React.FC = () => {
                                <h3 className="text-sm font-medium text-geist-text-primary-light dark:text-geist-text-primary-dark line-clamp-1">{paper.name}</h3>
                                <div className="flex items-center gap-2 mt-0.5 text-[10px] text-geist-text-secondary-light dark:text-geist-text-secondary-dark uppercase font-medium tracking-wide">
                                   {paper.year && <span className="px-1.5 py-0.5 rounded border border-geist-border-light dark:border-geist-border-dark bg-geist-surface-light dark:bg-geist-surface-dark">{paper.year}</span>}
-                                  <span className="flex items-center gap-1"><Filter className="w-2.5 h-2.5" /> {questions.filter(q => q.paper_id === paper.id).length} Qs</span>
+                                  <span className="flex items-center gap-1"><Filter className="w-2.5 h-2.5" /> Paper</span>
                                </div>
                             </div>
                          </div>

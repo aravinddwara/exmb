@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Play, Pause, RotateCcw, Volume2, VolumeX, Maximize, Minimize, Settings2, Clock as ClockIcon, CheckCircle2, ChevronDown, Check } from 'lucide-react';
+import { ArrowLeft, Play, Pause, RotateCcw, Volume2, VolumeX, Maximize, Minimize, Settings2, Clock as ClockIcon, ChevronDown, Check } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { usePlannerStore } from '../../store/usePlannerStore';
 

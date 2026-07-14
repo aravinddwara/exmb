@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Play, CheckCircle2, ChevronRight, Folder, FolderOpen, FileText, Circle, CheckCircle, Flame, Plus, Clock, Target, Activity, Calendar } from 'lucide-react';
+import { ChevronRight, Folder, FolderOpen, FileText, Circle, CheckCircle, Flame, Plus, Clock, Target, Activity, Calendar } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useUserStore } from '../store/useUserStore';
 import { useAuthStore } from '../store/useAuthStore';
@@ -148,12 +148,7 @@ export const Dashboard: React.FC = () => {
         }
         
         if (recentChapter) {
-           const chapQs = questions.filter(cq => cq.chapter_id === recentChapter.id);
-           if (chapQs.length > 0) {
-              const chapQIds = new Set(chapQs.map(cq => cq.id));
-              const attempted = new Set(attempts.filter(a => chapQIds.has(a.question_id)).map(a => a.question_id)).size;
-              recentChapterProgress = Math.round((attempted / chapQs.length) * 100);
-           }
+           recentChapterProgress = 0;
         }
      }
   }
