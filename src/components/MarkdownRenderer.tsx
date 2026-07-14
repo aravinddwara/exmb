@@ -3,7 +3,6 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import remarkMath from 'remark-math';
 import rehypeKatex from 'rehype-katex';
-import rehypeRaw from 'rehype-raw';
 import rehypeSanitize, { defaultSchema } from 'rehype-sanitize';
 import 'katex/dist/katex.min.css';
 
@@ -17,7 +16,7 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = memo(({ content
   let processedContent = content
     ? content
         .replace(/\\\((.*?)\\\)/gs, (_, match) => `$${match}$`)
-        .replace(/\\\[(.*?)\\\]/gs, (_, match) => `$$$${match}$$$`)
+        .replace(/\\\[(.*?)\\\]/gs, (_, match) => `$$${match}$$`)
     : '';
 
   // Auto-format markdown tables that are missing the separator row or outer pipes
@@ -91,14 +90,21 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = memo(({ content
       <ReactMarkdown
         remarkPlugins={[remarkGfm, remarkMath]}
         rehypePlugins={[
-          rehypeRaw,
           [rehypeSanitize, {
             ...defaultSchema,
             attributes: {
               ...defaultSchema.attributes,
-              '*': ['className'],
+              // Only allow className on span/div (needed for KaTeX)
+              'span': [...(defaultSchema.attributes?.['span'] || []), 'className', 'style'],
+              'div': [...(defaultSchema.attributes?.['div'] || []), 'className', 'style'],
               'img': ['src', 'alt', 'title', 'width', 'height', 'loading'],
-            }
+            },
+            tagNames: [
+              ...(defaultSchema.tagNames || []),
+              'span', 'div', 'math', 'semantics', 'mrow', 'mi', 'mn',
+              'mo', 'msup', 'msub', 'mfrac', 'mover', 'munder',
+              'mtable', 'mtr', 'mtd', 'mtext', 'annotation'
+            ]
           }],
           rehypeKatex
         ]}

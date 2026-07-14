@@ -67,7 +67,11 @@ export const MockTestSession: React.FC = () => {
         return;
       }
 
-      const config = JSON.parse(configStr);
+      const rawConfig = JSON.parse(configStr);
+      // Validate config shape
+      const config = {
+        paper_id: typeof rawConfig.paper_id === 'string' ? rawConfig.paper_id : null,
+      };
       const targetPaper = papers.find((p) => p.id === config.paper_id);
 
       if (!targetPaper) {

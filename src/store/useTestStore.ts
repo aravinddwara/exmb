@@ -154,11 +154,30 @@ export const useTestStore = create<TestState>()(
       },
 
       endTest: () => {
-        set({ isActive: false });
+        set({ isActive: false, sessionId: null, questions: [], responses: {}, timeLeft: 0 });
+        // Clear persisted state on test end
+        try { sessionStorage.removeItem('test-session-storage'); } catch {}
       }
     }),
     {
       name: 'test-session-storage',
+      // Use sessionStorage instead of localStorage — dies when tab closes
+      storage: {
+        getItem: (name) => {
+          const str = sessionStorage.getItem(name);
+          return str ? JSON.parse(str) : null;
+        },
+        setItem: (name, value) => sessionStorage.setItem(name, JSON.stringify(value)),
+        removeItem: (name) => sessionStorage.removeItem(name),
+      },
+      // Don't persist timeLeft — it must come from the live timer, not storage
+      partialize: (state) => ({
+        sessionId: state.sessionId,
+        questions: state.questions,
+        currentQuestionIndex: state.currentQuestionIndex,
+        responses: state.responses,
+        isActive: state.isActive,
+      } as TestState),
     }
   )
 );

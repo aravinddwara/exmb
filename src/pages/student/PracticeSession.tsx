@@ -62,7 +62,20 @@ export const PracticeSession: React.FC = () => {
         return;
       }
 
-      const config = JSON.parse(configStr);
+      const rawConfig = JSON.parse(configStr);
+
+      // Validate config shape to prevent injection / prototype pollution
+      const config = {
+        chapterIds: Array.isArray(rawConfig.chapterIds) ? rawConfig.chapterIds.filter((id: any) => typeof id === 'string') : [],
+        subjectIds: Array.isArray(rawConfig.subjectIds) ? rawConfig.subjectIds.filter((id: any) => typeof id === 'string') : [],
+        classIds: Array.isArray(rawConfig.classIds) ? rawConfig.classIds.filter((id: any) => typeof id === 'string') : [],
+        topicIds: Array.isArray(rawConfig.topicIds) ? rawConfig.topicIds.filter((id: any) => typeof id === 'string') : [],
+        sourceType: typeof rawConfig.sourceType === 'string' ? rawConfig.sourceType : undefined,
+        sourceId: typeof rawConfig.sourceId === 'string' ? rawConfig.sourceId : undefined,
+        questionOrder: typeof rawConfig.questionOrder === 'string' ? rawConfig.questionOrder : 'random',
+        questionCount: typeof rawConfig.questionCount === 'number' ? Math.min(Math.max(0, rawConfig.questionCount), 500) : 0,
+        timeLimit: typeof rawConfig.timeLimit === 'number' ? Math.min(Math.max(0, rawConfig.timeLimit), 86400) : 0,
+      };
 
       // Determine session name based on config
       let name = "Practice Session";

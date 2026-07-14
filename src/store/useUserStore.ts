@@ -88,18 +88,21 @@ export const useUserStore = create<UserState>((set, get) => ({
       supabase.from('topics').select('*').order('order_index'),
       supabase.from('exams').select('*').order('order_index'),
       supabase.from('papers').select('*').eq('status', 'Published').order('order_index'),
-      supabase.from('question_attempts').select('*').order('created_at', { ascending: false }),
+      supabase.from('question_attempts').select('*').order('created_at', { ascending: false }).limit(5000),
       supabase.from('books_sets').select('*').order('order_index')
     ]);
 
+    // Fetch from the safe view — excludes correct_option, explanation, explanation_images
     let allQuestions: any[] = [];
     let from = 0;
     let to = 999;
     let hasMore = true;
-    while (hasMore) {
+    const MAX_PAGES = 20; // Safety guard against infinite loops
+    let page = 0;
+    while (hasMore && page < MAX_PAGES) {
+      page++;
       const { data, error } = await supabase.from('questions_for_students')
-        .select('id, text, question_images, option_1, option_1_image, option_2, option_2_image, option_3, option_3_image, option_4, option_4_image, options, type, difficulty, positive_marks, negative_marks, chapter_id, topic_id, paper_id, book_set_id, question_type_id, status, created_at')
-        .eq('status', 'Published')
+        .select('*')
         .range(from, to);
       if (error) {
          console.error(error);
@@ -234,11 +237,12 @@ export const useUserStore = create<UserState>((set, get) => ({
     let from = 0;
     let to = 999;
     let hasMore = true;
-    while (hasMore) {
+    let page = 0;
+    while (hasMore && page < 20) {
+      page++;
       const { data, error } = await supabase.from('questions_for_students')
-        .select('id, text, question_images, option_1, option_1_image, option_2, option_2_image, option_3, option_3_image, option_4, option_4_image, options, type, difficulty, positive_marks, negative_marks, chapter_id, paper_id, book_set_id, question_type_id, status, created_at')
+        .select('*')
         .eq('chapter_id', chapterId)
-        .eq('status', 'Published')
         .range(from, to);
       
       if (error) { console.error(error); break; }
@@ -259,11 +263,12 @@ export const useUserStore = create<UserState>((set, get) => ({
     let from = 0;
     let to = 999;
     let hasMore = true;
-    while (hasMore) {
+    let page = 0;
+    while (hasMore && page < 20) {
+      page++;
       const { data, error } = await supabase.from('questions_for_students')
-        .select('id, text, question_images, option_1, option_1_image, option_2, option_2_image, option_3, option_3_image, option_4, option_4_image, options, type, difficulty, positive_marks, negative_marks, chapter_id, paper_id, book_set_id, question_type_id, status, created_at')
+        .select('*')
         .eq('paper_id', paperId)
-        .eq('status', 'Published')
         .range(from, to);
       
       if (error) { console.error(error); break; }

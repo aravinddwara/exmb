@@ -52,6 +52,17 @@ export const LoginPage: React.FC = () => {
 
     try {
       if (isSignUp) {
+        // Client-side password strength validation
+        if (password.length < 8) {
+          setErrorMsg('Password must be at least 8 characters long.');
+          setIsLoggingIn(false);
+          return;
+        }
+        if (!/\d/.test(password)) {
+          setErrorMsg('Password must contain at least one number.');
+          setIsLoggingIn(false);
+          return;
+        }
         const { error } = await supabase.auth.signUp({
           email,
           password,
@@ -191,6 +202,26 @@ export const LoginPage: React.FC = () => {
                       disabled={isLoggingIn}
                     />
                   </div>
+                  {isSignUp && password.length > 0 && (
+                    <div className="mt-1.5 flex items-center gap-2">
+                      <div className="flex-1 h-1 rounded-full bg-white/10 overflow-hidden">
+                        <div
+                          className={`h-full rounded-full transition-all duration-300 ${
+                            password.length >= 8 && /\d/.test(password) && /[A-Z]/.test(password)
+                              ? 'w-full bg-green-500'
+                              : password.length >= 8 && /\d/.test(password)
+                              ? 'w-2/3 bg-yellow-500'
+                              : password.length >= 6
+                              ? 'w-1/3 bg-red-400'
+                              : 'w-[10%] bg-red-500'
+                          }`}
+                        />
+                      </div>
+                      <span className="text-[10px] text-white/40 whitespace-nowrap">
+                        {password.length < 8 ? 'Min 8 chars' : !/\d/.test(password) ? 'Add a number' : 'Strong'}
+                      </span>
+                    </div>
+                  )}
                 </div>
               )}
 

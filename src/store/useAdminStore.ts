@@ -206,8 +206,11 @@ export const useAdminStore = create<AdminState>((set, get) => ({
       let from = 0;
       let to = 999;
       let hasMore = true;
+      const MAX_PAGES = 20; // Safety guard against infinite loops
 
-      while (hasMore) {
+      let page = 0;
+      while (hasMore && page < MAX_PAGES) {
+        page++;
         const { data, error } = await supabase.from('questions').select('*').range(from, to);
         if (error) throw error;
         
@@ -224,7 +227,7 @@ export const useAdminStore = create<AdminState>((set, get) => ({
         }
       }
       set({ questions: allData });
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error fetching all questions:', error);
     } finally {
       set({ isLoading: false });
@@ -250,7 +253,9 @@ export const useAdminStore = create<AdminState>((set, get) => ({
       let from = 0;
       let to = 999;
       let hasMore = true;
-      while (hasMore) {
+      let page = 0;
+      while (hasMore && page < 20) {
+        page++;
         const { data, error } = await supabase.from('questions').select('*')
           .eq('paper_id', paperId)
           .range(from, to);
@@ -278,7 +283,9 @@ export const useAdminStore = create<AdminState>((set, get) => ({
       let from = 0;
       let to = 999;
       let hasMore = true;
-      while (hasMore) {
+      let page = 0;
+      while (hasMore && page < 20) {
+        page++;
         const { data, error } = await supabase.from('questions').select('*')
           .eq('chapter_id', chapterId)
           .range(from, to);
